@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "basic-carlo-webusb",
+  "name": "ledger-webusb-sample",
   "version": "1.0.0",
   "description": "A minimal Carlo application",
   "main": "main.js",
@@ -12,7 +12,7 @@
   "dependencies": {
     "babel-polyfill": "^6.26.0",
     "carlo": "^0.9.46",
-    "ledger-liquid-lib-web": "git+https://github.com/cryptogarageinc/ledger-liquid-lib-web.git#master"
+    "ledger-liquid-lib-web": "git+https://github.com/cryptogarageinc/ledger-liquid-lib-web.git#v0.0.1"
   },
   "devDependencies": {
     "parcel": "^1.12.4"
