@@ -16658,8 +16658,9 @@ function convertValueFromAmount(amount) {
   let high;
   let low;
   if (typeof amount === 'bigint') {
-    const bigHigh = (amount > 0xffffffffn) ? (amount >> 32n) : 0n;
-    const bigLow = amount & 0xffffffffn;
+    const bigHigh = (amount > BigInt(0xffffffff)) ?
+        (amount >> BigInt(32)) : BigInt(0);
+    const bigLow = amount & BigInt(0xffffffff);
     high = Number(bigHigh);
     low = Number(bigLow);
   } else {
@@ -17140,12 +17141,18 @@ async function checkConnect(transport) {
   // console.timeEnd('call getCoinVersion');
   // console.log('getCoinVersion =', result);
   if (result.errorCode === 0x9000) {
-    if ((result.prefixP2pkh === 0xeb) &&
+    if ((result.prefixP2pkh === 0x39) &&
+        (result.prefixP2sh === 0x27) &&
+        (result.coinFamily === 0x01) &&
+        (result.coinName === 'Bitcoin') &&
+        (result.coinTicker === 'BTC')) {
+      // liquid mainnet
+    } else if ((result.prefixP2pkh === 0xeb) &&
         (result.prefixP2sh === 0x4b) &&
         (result.coinFamily === 0x01) &&
         (result.coinName === 'Bitcoin') &&
         (result.coinTicker === 'BTC')) {
-      // liquid
+      // liquid testnet
     } else {
       return disconnectEcode;
     }
@@ -17181,7 +17188,7 @@ const ledgerLiquidWrapper = class LedgerLiquidWrapper {
     let ecode = disconnectEcode;
     let errMsg = 'other error';
     try {
-      //      devList = await TransportNodeHid.list();
+      // devList = await TransportNodeHid.list();
       devList = await TransportWebUSB.list();
       ecode = 0x9000;
       errMsg = '';
@@ -17207,9 +17214,9 @@ const ledgerLiquidWrapper = class LedgerLiquidWrapper {
     this.waitForConnecting = true;
     const waitLimit = (typeof maxWaitTime === 'number') ? maxWaitTime : 0;
     const path = (typeof devicePath === 'string') ? devicePath : '';
-    console.info(`connection path=${path}`);
+    console.info('connection device:', (!path) ? 'auto' : path);
     let transport = undefined;
-    let count = (waitLimit <= 0) ? 0 : 1;
+    let count = (waitLimit < 1) ? 0 : 1;
     let ecode = disconnectEcode;
     let errMsg = 'other error';
     while ((count <= waitLimit) && this.waitForConnecting) {
@@ -17245,6 +17252,7 @@ const ledgerLiquidWrapper = class LedgerLiquidWrapper {
           console.warn(e);
           console.log(`connection fail.(exception) count=${count}`, e);
           ecode = 0x6000;
+          errMsg = errText;
           break;
         }
       }
@@ -17252,7 +17260,7 @@ const ledgerLiquidWrapper = class LedgerLiquidWrapper {
       transport = undefined;
       console.info(`connection fail. count=${count}`);
       ++count;
-      if (count != waitLimit) await sleep(1000);
+      if (count < waitLimit) await sleep(1000);
     }
 
     if (ecode === 0x9000) {
@@ -17319,7 +17327,7 @@ const ledgerLiquidWrapper = class LedgerLiquidWrapper {
 
   async disconnect() {
     if (this.transport !== undefined) {
-      await this.close(transport);
+      await this.close(this.transport);
       this.transport = undefined;
     }
   }
@@ -17416,55 +17424,6 @@ const ledgerLiquidWrapper = class LedgerLiquidWrapper {
       errorMessage: errMsg,
       disconnect: connRet.disconnect,
       xpubKey: (!xpub) ? '' : xpub,
-    };
-  }
-
-  // unuse
-  async getAddress(bip32Path, addressFormat) {
-    let result = undefined;
-    const addressRet = undefined;
-    let pubkeyRet = undefined;
-    const connRet = await this.isConnected();
-    let ecode = connRet.errorCode;
-    let errMsg = connRet.errorMessage;
-    if (connRet.success) {
-      pubkeyRet = await this.getWalletPublicKey(bip32Path);
-      result = pubkeyRet;
-      if (pubkeyRet.success) {
-        // let hashType = 'p2sh-p2wpkh';
-        // if (addressFormat === 'bech32') {
-        //   hashType = 'p2wpkh';
-        // } else if (addressFormat === 'legacy') {
-        //   hashType = 'p2pkh';
-        // }
-        // addressRet = cfdjs.CreateAddress({
-        //   keyData: {
-        //     hex: pubkeyRet.publicKey,
-        //     type: 'pubkey',
-        //   },
-        //   network: this.networkType,
-        //   isElements: true,
-        //   hashType: hashType,
-        // });
-        // result = pubkeyRet;
-        if (addressFormat === 'bech32') {
-          result = {errorCode: 0x6000};
-        } else {
-          result = {errorCode: 0x6000};
-        }
-      }
-      ecode = result.errorCode;
-      errMsg = (ecode === 0x9000) ? '' : 'other error';
-    }
-    return {
-      success: (ecode === 0x9000),
-      errorCode: ecode,
-      errorCodeHex: ecode.toString(16),
-      errorMessage: errMsg,
-      disconnect: connRet.disconnect,
-      publicKey: (!pubkeyRet) ? '' : compressPubkey(pubkeyRet.pubkey),
-      chainCode: (!pubkeyRet) ? '' : pubkeyRet.chainCode,
-      address: (!addressRet) ? '' : addressRet.address,
     };
   }
 
@@ -17646,8 +17605,26 @@ const ledgerLiquidWrapper = class LedgerLiquidWrapper {
   }
 };
 
+const networkType = {
+  LiquidV1: 'liquidv1',
+  Regtest: 'regtest',
+};
+
+const addressType = {
+  Legacy: 'legacy',
+  P2shSegwit: 'p2sh-segwit',
+  Bech32: 'bech32',
+};
+
 module.exports = ledgerLiquidWrapper;
 module.exports.LedgerLiquidWrapper = ledgerLiquidWrapper;
+module.exports.NetworkType = networkType;
+module.exports.NetworkType.LiquidV1 = networkType.LiquidV1;
+module.exports.NetworkType.Regtest = networkType.Regtest;
+module.exports.AddressType = addressType;
+module.exports.AddressType.Legacy = addressType.Legacy;
+module.exports.AddressType.P2shSegwit = addressType.P2shSegwit;
+module.exports.AddressType.Bech32 = addressType.Bech32;
 
 },{"@ledgerhq/hw-transport-webusb":"../node_modules/@ledgerhq/hw-transport-webusb/lib-es/TransportWebUSB.js","ripemd160":"../node_modules/ripemd160/index.js","sha.js":"../node_modules/sha.js/index.js","bs58":"../node_modules/bs58/index.js","buffer":"../node_modules/buffer/index.js"}],"../node_modules/ledger-liquid-lib-web/index.js":[function(require,module,exports) {
 module.exports = require('./src/ledger-liquid-lib.js');
@@ -17676,7 +17653,7 @@ var walletUtxoList = [{
   bip32Path: "m/44'/0'/0'/0/0",
   txid: '478e4e8ad3e316128ac4e43b0dd2473f93478c282dbf576247bf3a9ebc7c0583',
   vout: 0,
-  amount: 5000000n,
+  amount: 5000000,
   valueCommitment: '08167037f11cebe46f7ad39265a319fdf75722624f02df1b2b0be69d2f7438024d',
   redeemScript: '',
   pubkey: '022d726e30e0d84bff2b1d4c7a4c3233b678fe10953cae9d913af3c27852ced80f'
@@ -17684,7 +17661,7 @@ var walletUtxoList = [{
   bip32Path: "m/44'/0'/0'/0/1",
   txid: '478e4e8ad3e316128ac4e43b0dd2473f93478c282dbf576247bf3a9ebc7c0583',
   vout: 1,
-  amount: 5000000n,
+  amount: 5000000,
   valueCommitment: '08db2678b9730337ef1852a32f816cf8b815b4c30dacf41e22e3776c5e8732934a',
   redeemScript: '',
   pubkey: '02fcb2dc2f2c57dd2482c69a59d98d75f71f0f373713187eb8e979aafb94ed1c93'
@@ -17692,7 +17669,7 @@ var walletUtxoList = [{
   bip32Path: "m/44'/0'/0'/0/4",
   txid: '478e4e8ad3e316128ac4e43b0dd2473f93478c282dbf576247bf3a9ebc7c0583',
   vout: 4,
-  amount: 5000000n,
+  amount: 5000000,
   valueCommitment: '09e92805ad0eb4484edec7b09dc58471f9d50c292b5360d4bbb7ed8d4d4d818dcd',
   redeemScript: '',
   pubkey: '0364049c7d19c5e3c5197698b6f81bd32b5622c640bda74111b154a2e18c9c241b'
@@ -17804,7 +17781,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "56269" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55019" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
