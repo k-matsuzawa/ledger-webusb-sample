@@ -15,7 +15,7 @@ const walletUtxoList = [
     bip32Path: "m/44'/0'/0'/0/0",
     txid: '478e4e8ad3e316128ac4e43b0dd2473f93478c282dbf576247bf3a9ebc7c0583',
     vout: 0,
-    amount: 5000000n,
+    amount: 5000000,
     valueCommitment: '08167037f11cebe46f7ad39265a319fdf75722624f02df1b2b0be69d2f7438024d',
     redeemScript: '',
     pubkey: '022d726e30e0d84bff2b1d4c7a4c3233b678fe10953cae9d913af3c27852ced80f'
@@ -24,7 +24,7 @@ const walletUtxoList = [
     bip32Path: "m/44'/0'/0'/0/1",
     txid: '478e4e8ad3e316128ac4e43b0dd2473f93478c282dbf576247bf3a9ebc7c0583',
     vout: 1,
-    amount: 5000000n,
+    amount: 5000000,
     valueCommitment: '08db2678b9730337ef1852a32f816cf8b815b4c30dacf41e22e3776c5e8732934a',
     redeemScript: '',
     pubkey: '02fcb2dc2f2c57dd2482c69a59d98d75f71f0f373713187eb8e979aafb94ed1c93'
@@ -33,7 +33,7 @@ const walletUtxoList = [
     bip32Path: "m/44'/0'/0'/0/4",
     txid: '478e4e8ad3e316128ac4e43b0dd2473f93478c282dbf576247bf3a9ebc7c0583',
     vout: 4,
-    amount: 5000000n,
+    amount: 5000000,
     valueCommitment: '09e92805ad0eb4484edec7b09dc58471f9d50c292b5360d4bbb7ed8d4d4d818dcd',
     redeemScript: '',
     pubkey: '0364049c7d19c5e3c5197698b6f81bd32b5622c640bda74111b154a2e18c9c241b'
