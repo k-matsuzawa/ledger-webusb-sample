@@ -1,0 +1,130 @@
+name: create-release-upload
+
+on: 
+  push:
+    tags:
+    - 'v*'
+
+env:
+  NODE_VERSION: 12
+
+jobs:
+  create-releases:
+    name: create-releases
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          Changes in this Release
+          - First Change
+          - Second Change
+        draft: false
+        prerelease: false
+#      continue-on-error: true
+    - name: write upload url
+      env:
+        url: ${{ steps.create_release.outputs.upload_url }}
+      run: |
+        echo $url > upload_url.txt
+    - name: upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: artifact-upload_url
+        path: upload_url.txt
+
+  upload-object:
+    name: upload-object
+    needs: create-releases
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - uses: actions/setup-node@v1
+      continue-on-error: true
+      timeout-minutes: 1
+      with:
+        node-version: ${{env.NODE_VERSION}}
+    - name: setup-node retry
+      uses: actions/setup-node@v1
+      continue-on-error: true
+      timeout-minutes: 1
+      with:
+        node-version: ${{env.NODE_VERSION}}
+    - name: setup-node third-try
+      uses: actions/setup-node@v1
+      timeout-minutes: 1
+      with:
+        node-version: ${{env.NODE_VERSION}}
+    - name: download artifact
+      uses: actions/download-artifact@v1
+      with:
+        name: artifact-upload_url
+    - name: dump upload url
+      id: get_url
+      run: |
+        export up_url="$(cat artifact-upload_url/upload_url.txt)"
+        echo "::set-output name=upload_url::$up_url"
+        echo "url=$up_url"
+      shell: bash
+    - name: Get the version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      shell: bash
+    - name: dump node version
+      id: node_ver
+      run: |
+        export node_ver="$(node --version)"
+        echo "::set-output name=node_version::$node_ver"
+        echo "node_version=$node_ver"
+      shell: bash
+    - name: npm_install
+      run: npm install
+    - name: build
+      run: npm run build
+    - name: create archive file macos
+      if: matrix.os == 'macos-latest'
+      run: |
+        zip -r output_macos.zip dist
+        echo "---- dump zip file ----"
+        ls -l output_macos.zip
+    - name: create archive file windows
+      if: matrix.os == 'windows-latest'
+      run: |
+        Compress-Archive -Path ./dist -DestinationPath ./output_win.zip
+        cd ..
+        echo "---- dump zip file ----"
+        dir .
+    - name: Upload Release Asset macos
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_url.outputs.upload_url }}
+        asset_path: ./output_macos.zip
+        asset_name: macos-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_content_type: application/zip
+    - name: Upload Release Asset windows
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get_url.outputs.upload_url }}
+        asset_path: ./output_win.zip
+        asset_name: win-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_content_type: application/zip
