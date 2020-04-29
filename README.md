@@ -13,6 +13,11 @@
   + <script src="./renderer.88758613.js">
   ```
 
+# github pages
+
+  - [windows](https://cryptogarageinc.github.io/ledger-webusb-sample/output_win/)
+  - [macos](https://cryptogarageinc.github.io/ledger-webusb-sample/output_mac/)
+
 # basic-carlo-webusb
 
 Ledger basic [Google's Carlo](https://github.com/GoogleChromeLabs/carlo) example with WebUSB.
