@@ -49,6 +49,7 @@ document.body.addEventListener("dblclick", async () => {
     const h21 = document.createElement("h2");
     const h22 = document.createElement("h2");
     const h23 = document.createElement("h2");
+    const h11 = document.createElement("h1");
 
     const networkType = 'liquidv1';
     const liquidLib = new LedgerLiquidWrapper(networkType);
@@ -56,7 +57,11 @@ document.body.addEventListener("dblclick", async () => {
     if (!connRet.success) {
       throw Error(connRet.errorMessage);
     }
-    $main.innerHTML = "<h1>Your root Key Data:</h1>";
+    const { version, name } = await liquidLib.getApplicationInfo();
+    $main.innerHTML = `<h1>${name}: v${version.major}.${version.minor}.${version.patch}</h1>`;
+
+    h11.textContent = "<h1>Your root Key Data:</h1>";
+    $main.appendChild(h11);
 
     const { publicKey } = await liquidLib.getWalletPublicKey("44'/0'/0'");
     h21.textContent = 'pubkey: ' + publicKey;
