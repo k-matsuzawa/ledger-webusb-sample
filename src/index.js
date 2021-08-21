@@ -1,5 +1,4 @@
-import "babel-polyfill";
-import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
+// import TransportWebUSB from "@ledgerhq/hw-transport-webusb";
 import {LedgerLiquidWrapper, GetSignatureState} from "ledger-liquid-lib-web";
 
 const initial =
