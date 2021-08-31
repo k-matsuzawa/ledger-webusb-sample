@@ -149,7 +149,11 @@ document.body.addEventListener("dblclick", async () => {
     $main.appendChild(h24);
     const signatureResult = await liquidLib.getSignature(proposalTx,
         walletUtxoList, authorizationSignature);
-    h23.textContent = 'getSignature success.';
+    if (signatureResult.success) {
+      h23.textContent = 'getSignature success.';
+    } else {
+      h23.textContent = 'getSignature fail.';
+    }
     h24.textContent = '';
 
     console.log('signatureResult:', JSON.stringify(signatureResult, (key, value) =>
