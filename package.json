@@ -1,6 +1,6 @@
 {
   "name": "ledger-webusb-sample",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A minimal Carlo application",
   "main": "main.js",
   "scripts": {
@@ -9,12 +9,12 @@
   },
   "dependencies": {
     "buffer": "^6.0.3",
-    "ledger-liquid-lib-web": "git+https://github.com/cryptogarageinc/ledger-liquid-lib-web.git#semver:~0.1.0"
+    "ledger-liquid-lib-web": "git+https://github.com/cryptogarageinc/ledger-liquid-lib-web.git#semver:~0.1.1"
   },
   "devDependencies": {
-    "copy-webpack-plugin": "^9.0.1",
-    "webpack": "^5.51.1",
-    "webpack-cli": "^4.8.0",
+    "copy-webpack-plugin": "^10.0.0",
+    "webpack": "^5.64.1",
+    "webpack-cli": "^4.9.1",
     "write-file-webpack-plugin": "^4.5.1"
   }
 }
