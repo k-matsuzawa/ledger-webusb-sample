@@ -11,7 +11,7 @@
   "dependencies": {
     "babel-polyfill": "^6.26.0",
     "carlo": "^0.9.46",
-    "ledger-liquid-lib-web": "git+https://github.com/cryptogarageinc/ledger-liquid-lib-web.git#semver:~0.0.11"
+    "ledger-liquid-lib-web": "git+https://github.com/cryptogarageinc/ledger-liquid-lib-web.git#semver:~0.0.12"
   },
   "devDependencies": {
     "parcel": "^1.12.4"
